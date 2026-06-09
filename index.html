@@ -1,56 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blood Donor Map</title>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
     <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        h2 {
+            text-align: center;
+            padding: 10px;
+        }
+
         #map {
-            height: 600px;
+            height: 90vh;
             width: 100%;
         }
     </style>
 </head>
 <body>
 
-<h2>Blood Donor Map</h2>
+<h2>Blood Donor Location Map</h2>
+
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-const map = L.map('map').setView([23.6850, 90.3563], 7);
+    // Initialize map centered on Bangladesh
+    const map = L.map('map').setView([23.6850, 90.3563], 7);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+    // OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-fetch('donors.csv')
-.then(response => response.text())
-.then(csv => {
+    // Read CSV file
+    fetch('Blood_Donor_List_With_Coordinates.csv')
+        .then(response => response.text())
+        .then(csv => {
 
-    const rows = csv.trim().split('\n');
-    const headers = rows[0].split(',');
+            const rows = csv.trim().split('\n');
+            const headers = rows[0].split(',');
 
-    rows.slice(1).forEach(row => {
-        const cols = row.split(',');
+            rows.slice(1).forEach(row => {
 
-        const donor = {};
-        headers.forEach((h, i) => donor[h] = cols[i]);
+                const cols = row.split(',');
 
-        L.marker([
-            parseFloat(donor.Latitude),
-            parseFloat(donor.Longitude)
-        ])
-        .addTo(map)
-        .bindPopup(`
-            <b>${donor.Name}</b><br>
-            Blood Group: ${donor.BloodGroup}<br>
-            Phone: ${donor.Phone}<br>
-            Location: ${donor.Location}
-        `);
-    });
-});
+                const donor = {};
+                headers.forEach((header, index) => {
+                    donor[header.trim()] = cols[index];
+                });
+
+                const lat = parseFloat(donor.Latitude);
+                const lng = parseFloat(donor.Longitude);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+
+                    L.marker([lat, lng])
+                        .addTo(map)
+                        .bindPopup(`
+                            <b>${donor.Name}</b><br>
+                            📞 ${donor["Phone Number"]}<br>
+                            🩸 Blood Group: ${donor["Blood Group"]}<br>
+                            📍 ${donor["Current Location"]}
+                        `);
+                }
+            });
+        })
+        .catch(error => {
+            console.error("Error loading CSV:", error);
+        });
 </script>
 
 </body>
