@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blood Donor Map</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Blood Donor Map</h2>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+const map = L.map('map').setView([23.6850, 90.3563], 7);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+fetch('donors.csv')
+.then(response => response.text())
+.then(csv => {
+
+    const rows = csv.trim().split('\n');
+    const headers = rows[0].split(',');
+
+    rows.slice(1).forEach(row => {
+        const cols = row.split(',');
+
+        const donor = {};
+        headers.forEach((h, i) => donor[h] = cols[i]);
+
+        L.marker([
+            parseFloat(donor.Latitude),
+            parseFloat(donor.Longitude)
+        ])
+        .addTo(map)
+        .bindPopup(`
+            <b>${donor.Name}</b><br>
+            Blood Group: ${donor.BloodGroup}<br>
+            Phone: ${donor.Phone}<br>
+            Location: ${donor.Location}
+        `);
+    });
+});
+</script>
+
+</body>
+</html>
